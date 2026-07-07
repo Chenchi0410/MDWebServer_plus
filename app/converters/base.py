@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,6 +46,8 @@ class ConverterAdapter(Protocol):
     def check_environment(self) -> EnvironmentStatus:
         ...
 
-    def convert(self, input_path: Path, output_dir: Path, options: dict | None = None) -> ConversionResult:
+    def get_version(self) -> str:
         ...
 
+    def convert(self, input_path: Path, output_dir: Path, options: dict | None = None) -> ConversionResult:
+        ...

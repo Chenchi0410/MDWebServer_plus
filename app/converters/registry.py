@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from app.config import AppConfig, load_config
 from app.converters.base import ConverterAdapter
@@ -23,9 +23,17 @@ def get_converter(converter_id: str, config: AppConfig | None = None) -> Convert
         raise KeyError(f"Unknown converter: {converter_id}") from exc
 
 
-def list_converters(config: AppConfig | None = None) -> list[dict]:
+def list_converters(config: AppConfig | None = None, file_extension: str | None = None) -> list[dict]:
+    normalized_ext = None
+    if file_extension:
+        normalized_ext = file_extension.lower()
+        if not normalized_ext.startswith("."):
+            normalized_ext = f".{normalized_ext}"
+
     rows = []
     for adapter in build_registry(config).values():
+        if normalized_ext and normalized_ext not in adapter.supported_extensions:
+            continue
         status = adapter.check_environment()
         rows.append(
             {
@@ -33,8 +41,9 @@ def list_converters(config: AppConfig | None = None) -> list[dict]:
                 "name": adapter.name,
                 "supported_extensions": sorted(adapter.supported_extensions),
                 "available": status.available,
+                "version": status.details.get("version") or adapter.get_version(),
                 "message": status.message,
+                "details": status.details,
             }
         )
     return rows
-

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import subprocess
 import time
@@ -19,13 +19,45 @@ class PyMuPDF4LLMAdapter:
     def check_environment(self) -> EnvironmentStatus:
         if not self.config.local_venv_python.exists():
             return EnvironmentStatus(False, f"Missing Python: {self.config.local_venv_python}")
-        return EnvironmentStatus(True, "ready", {"python": str(self.config.local_venv_python)})
+        version = self.get_version()
+        return EnvironmentStatus(
+            version != "unavailable",
+            "ready" if version != "unavailable" else "PyMuPDF4LLM import failed",
+            {"python": str(self.config.local_venv_python), "version": version},
+        )
+
+    def get_version(self) -> str:
+        if not self.config.local_venv_python.exists():
+            return "unavailable"
+        code = (
+            "import importlib.metadata as m\n"
+            "try:\n"
+            "    print(m.version('pymupdf4llm'))\n"
+            "except m.PackageNotFoundError:\n"
+            "    print('unknown')\n"
+        )
+        try:
+            proc = subprocess.run(
+                [str(self.config.local_venv_python), "-c", code],
+                cwd=str(self.config.project_root),
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=20,
+            )
+        except Exception:
+            return "unavailable"
+        if proc.returncode != 0:
+            return "unavailable"
+        return (proc.stdout.strip() or "unknown").splitlines()[-1]
 
     def convert(self, input_path: Path, output_dir: Path, options: dict | None = None) -> ConversionResult:
         if input_path.suffix.lower() not in self.supported_extensions:
             raise ValueError("PyMuPDF4LLM only supports PDF files.")
         output_dir.mkdir(parents=True, exist_ok=True)
-        markdown_path = output_dir / f"{input_path.stem}.md"
+        markdown_path = output_dir / "result.md"
         code = (
             "from pathlib import Path\n"
             "import sys\n"
@@ -61,4 +93,3 @@ class PyMuPDF4LLMAdapter:
             stderr=proc.stderr,
             output_bytes=markdown_path.stat().st_size if markdown_path.exists() else 0,
         )
-
