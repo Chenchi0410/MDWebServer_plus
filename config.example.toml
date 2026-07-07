@@ -1,0 +1,11 @@
+[paths]
+project_root = "C:/Users/sangzs1/MdWebServer"
+run_root = "C:/Users/sangzs1/MdWebServer/MDWebServer/runs"
+dataset_dir = "C:/Users/sangzs1/MdWebServer/newbench"
+local_venv_python = "C:/Users/sangzs1/MdWebServer/.venv/Scripts/python.exe"
+ceping_evaluator = "C:/Users/sangzs1/MdWebServer/ceping/evaluate_file.py"
+
+[markitdown]
+python = "C:/Users/sangzs1/markitdown/.venv/Scripts/python.exe"
+cwd = "C:/Users/sangzs1/markitdown"
+
